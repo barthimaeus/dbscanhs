@@ -23,7 +23,8 @@ makepoints [] = []
 makepoints (x:y:ys) = ((read x::Int), (read y::Int)) : (makepoints ys)
 
 parsepoints = makepoints . splitcomma
-dbscan eps minpts points = map (\p -> (cluster p eps minpts points)) points
+
+dbscan eps minpts points = filter (not.null) $ map (\p -> (cluster p eps minpts points)) points
 
 region x eps points = filter (\p -> (manhattan x p) <= eps && not (x == p)) points
 
@@ -37,8 +38,10 @@ expand c eps minpts points visited
     | (head c) `elem` visited 
         = nub $ expand (tail c) eps minpts points visited
     | length (region (head c) eps points) < minpts 
-        = nub $ (head c) : expand (tail c) eps minpts points ((head c) : visited)
+        = nub $ (head c) : rest
     | otherwise 
         = nub $ c 
             ++ (expand (region (head c) eps points) eps minpts points ((head c) : visited))
-            ++ (expand (tail c) eps minpts points ((head c) : visited))
+            ++ rest
+    where
+        rest = (expand (tail c) eps minpts points ((head c) : visited))
