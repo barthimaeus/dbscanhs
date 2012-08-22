@@ -1,10 +1,11 @@
 import Data.Char
 import Data.List
+import Text.ParserCombinators.Parsec
 
 data Point a = Pt a a deriving (Show, Eq)
 manhattan (Pt x y) (Pt x' y') = abs (x' - x) + abs (y' - y)
 
-main = interact $ show . parsepoints
+main = interact $ show . simplescan . parsepoints
 
 
 split :: Char -> String -> [String]
@@ -20,10 +21,11 @@ splitcomma' = split ','
 splitcomma l = filter (\x -> not (x == "")) (splitcomma' l)
 
 makepoints [] = []
-makepoints (x:y:ys) = ((read x::Int), (read y::Int)) : (makepoints ys)
+makepoints (x:y:ys) = (Pt (read x::Int) (read y::Int)) : (makepoints ys)
 
 parsepoints = makepoints . splitcomma
 
+simplescan = dbscan 2 3
 dbscan eps minpts points = filter (not.null) $ map (\p -> (cluster p eps minpts points)) points
 
 region x eps points = filter (\p -> (manhattan x p) <= eps && not (x == p)) points
